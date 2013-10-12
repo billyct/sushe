@@ -1,0 +1,29 @@
+/*-------------------------------------------------------------------------------------*/
+/*  MAIN STYLES
+/*-------------------------------------------------------------------------------------*/
+@import url(twitter-bootstrap/bootstrap.min.css);
+@import url(social.css);
+@import url(social.plugins.css);
+@import url(social.examples.css);
+@import url(font-awesome.css);
+@import url(twitter-bootstrap/bootstrap-responsive.min.css);
+@import url(docs.css);
+
+
+#g1,#g2,#g3{width:200px;height:160px;display:inline-block; }
+.wraper #main{margin-top:40px;}
+
+#loading-block {
+	position:fixed;
+	top:0px;
+	right:0px;
+	bottom:0px;
+	left:0px;
+	background-color:#000000;
+	background-image:url(../img/loading.gif);
+	background-position:center center;
+	background-repeat:no-repeat;
+	opacity:0.8;
+	filter:alpha(opacity=80);
+	z-index:1000;
+}

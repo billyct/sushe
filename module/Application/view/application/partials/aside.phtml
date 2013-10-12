@@ -1,0 +1,101 @@
+<?php $current_user = $this->userIdentity() ?>
+<aside class="social-sidebar sidebar-full">
+            <div class="user-settings">
+                <div class="arrow"></div>
+                <h3 class="user-settings-title">Settings shortcuts</h3>
+                <div class="user-settings-content">
+                    <a href="#my-profile">
+                        <div class="icon"> <i class="icon-user"></i>
+                        </div>
+                        <div class="title">My Profile</div>
+                        <div class="content">View your profile</div>
+                    </a>
+                    <a href="#view-messages">
+                        <div class="icon"> <i class="icon-envelope-alt"></i>
+                        </div>
+                        <div class="title">View Messages</div>
+                        <div class="content">
+                            You have <strong>17</strong>
+                            new messages
+                        </div>
+                    </a>
+                    <a href="#view-pending-tasks">
+                        <div class="icon">
+                            <i class="icon-tasks"></i>
+                        </div>
+                        <div class="title">View Tasks</div>
+                        <div class="content">
+                            You have <strong>8</strong>
+                            pending tasks
+                        </div>
+                    </a>
+                </div>
+                <div class="user-settings-footer">
+                    <a href="#more-settings">See more settings</a>
+                </div>
+            </div>
+            <div class="social-sidebar-content">
+                <div class="scrollable">
+                    <div>
+                        <div class="user">
+                            <img class="avatar" width="25" height="25" src="/img/avatar-30.png" alt="Julio Marquez">
+                            <span data-toggle="dropdown"><?php echo $current_user['username']; ?></span>
+                            <i class="icon-user trigger-user-settings"></i>
+                        </div>
+                        <div class="navigation-sidebar">
+                            <i class="switch-sidebar-icon icon-chevron-left"></i>
+                            <i class="switch-sidebar-full icon-chevron-right"></i>
+                            <span>菜单</span>
+                        </div>
+                        <div class="search-sidebar">
+                            <form class="search-sidebar-form">
+                                <input type="text" class="search-query input-block-level" placeholder="搜索"></form>
+                        </div>
+                    </div>
+                    <section class="menu">
+                        <div class="accordion" id="accordion2">
+                            <div class="accordion-group active">
+                                <div class="accordion-heading">
+                                  <a class="accordion-toggle opened" href="/">
+                                    <img src="<?php echo $this->baseUrl() ?>/img/icons/stuttgart-icon-pack/32x32/home.png" alt="首页">
+                                    <span>首页</span>
+                                  </a>
+                                </div>
+                            </div>
+                            <?php foreach ($current_user['roles'] as $role) { ?>
+                            <?php foreach ($this->container->findAllBy('role', $role['name']) as $page) { ?>
+                            <?php if ( $page->hasChildren() ) { ?>
+                            <div class="accordion-group ">
+                                <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-parent="#accordion2" href="#collapse-ui-elements-<?php echo $page->name ?>">
+                                        <img src="<?php echo $page->icon?>" alt="<?php echo $page->label ?>">
+                                        <span><?php echo $page->label ?></span>
+                                        <span class="arrow"></span>
+                                    </a>
+                                </div>
+                                <ul id="collapse-ui-elements-<?php echo $page->name ?>" class="accordion-body collapse nav nav-list collapse ">
+                                    <?php foreach ($page->findAllBy('role-child', $role['name']) as $child) { ?>
+                                    <li>
+                                        <a href="<?php echo $child->uri ?>"><?php echo $child->label ?></a>
+                                    </li>
+                                    <?php } ?>
+                                </ul>
+                            </div>
+                            <?php } else { ?>
+                            <div class="accordion-group">
+                                <div class="accordion-heading">
+                                  <a class="accordion-toggle opened" href="<?php echo $page->uri ?>">
+                                    <img src="<?php echo $page->icon?>" alt="Dashboard">
+                                    <span><?php echo $page->label ?></span>
+                                    <!-- <span class="badge">9</span> -->
+                                  </a>
+                                </div>
+                            </div>
+                            <?php } ?>
+                            <?php } ?>
+                            <?php } ?>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </aside>

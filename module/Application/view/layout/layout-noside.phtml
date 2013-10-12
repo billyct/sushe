@@ -1,0 +1,40 @@
+<?php echo $this->
+doctype(); ?>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <?php echo $this->headTitle('宿舍-soonseen.in')->setSeparator(' - ')->setAutoEscape(false) ?>
+    <?php echo $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1.0')?>
+    <!-- Le styles -->
+    <?php echo $this->headLink(array('rel' => 'shortcut icon', 'type' => 'image/vnd.microsoft.icon', 'href' => $this->basePath() . '/img/favicon.ico'))
+                        ->prependStylesheet($this->basePath() . '/css/style.css')?>
+    <style type="text/css">body{padding-top:40px;padding-bottom:40px;background-color:#e9eaed;}</style>
+    <!-- Scripts -->
+    <?php echo $this->headScript()->prependFile($this->basePath() . '/js/html5.js', 'text/javascript', array('conditional' => 'lt IE 9',))
+                ?>
+</head>
+<body>
+
+    <div class="container">
+        <?php echo $this->content; ?>
+        <div class="form-footer-copyright">
+            2013 © <em>soonseen.in</em>
+            by
+            <a href="http://billyct.com/" target="_blank">billyct</a>
+            .
+        </div>
+    </div>
+
+
+    <!-- /container -->
+    <script type="text/javascript">
+    site = {
+        baseUrl: "<?php echo $this->baseUrl() ?>"
+    };
+    </script>
+    <?php echo $this->inlineScript()->prependFile($this->basePath() . '/js/placeholders/placeholders.min.js', 'text/javascript', array('conditional' => 'lte IE 8',))
+                                    ->prependFile($this->basePath() . '/js/jquery-1.9.1.min.js')
+                                    ?>
+    
+</body>
+</html>

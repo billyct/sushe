@@ -1,0 +1,12 @@
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/login.js') ?>
+
+<div id="loading-block"></div>
+<form class="form-login" method="post" action="<?php echo $this->basePath().'/user/signin'?>">
+	<input id="account" type="text" name="account" class="input-block-level" placeholder="用户名">
+	<input id="password" type="password" name="password" class="input-block-level" placeholder="密码">
+	<div class="row-fluid">
+		<label class="checkbox span6">
+			<input type="checkbox" value="remember-me">记住我</label>
+		<button id="btn-signin" class="btn btn-primary pull-right span6" type="submit">登录</button>
+	</div>
+</form>

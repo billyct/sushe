@@ -1,0 +1,1052 @@
+<?php $current_user = $this->userIdentity() ?>
+<div id="page" class="page">
+  
+</div>
+
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/jquery-chosen/chosen/chosen.jquery.min.js') ?>
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js') ?>
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/modules/module.js') ?>
+
+
+<script type="text/template" id="home-template">
+<h1>宿舍管理系统</h1>
+<h2>欢迎你<?php echo $current_user['username']?></h2>
+</script>
+
+<?php foreach ($current_user['roles'] as $role) { ?>
+  
+
+<?php if ($role['name'] == 'super') { ?>
+<script type="text/template" id="park-list-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <a href="#depart/park/add" class="btn">添加新园区</a>
+    </div>
+    <div class="body">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>园区</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% _.each(parks, function(park) { %>
+          <tr>
+            <td><%= park.get('id') %></td>
+            <td><%= park.get('name') %></td>
+            <td><a href="#depart/park/edit/<%= park.get('id') %>" class="btn">编辑</a></td>
+          </tr>
+        <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="park-form-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= park?'编辑园区':'新园区' %></h4>
+    </div>
+    <div class="body">
+      <form id="park-form" method="post" action="<?php echo $this->baseUrl()?>/park/save">
+        <div class="control-group">
+          <label class="control-label">园区名称</label>
+          <div class="controls">
+            <input type="text" id="name" name="name" placeholder="新园区" class="span12" value="<%= park?park.get('name'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a href="#depart/park/list" class="btn"><i class="icon-chevron-left"></i> 取消</a>
+          <button id="submit-button" type="submit" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+          <% if(park) { %>
+            <input type="hidden" name="id" value="<%= park.get('id') %>" />
+            <button data-park-id="<%= park.get('id') %>" class="btn btn-danger delete">删除</button>
+          <% }; %>
+        </div>
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="build-list-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <a href="#depart/build/add" class="btn">添加新楼号</a>
+
+    </div>
+    <div class="body">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>楼号</th>
+            <th>园区</th>
+            <th>管理员</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+            <% _.each(builds, function(build) { %>
+              <tr>
+                <td><%= build.get('id') %></td>
+                <td><%= build.get('name') %></td>
+                <td><%= build.get('park').name %></td>
+                <td><%= build.get('user').username %></td>
+                <td><a href="#depart/build/edit/<%= build.get('id') %>" class="btn">编辑</a></td>
+              </tr>
+            <% }); %>
+            <tr>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+
+
+<script type="text/template" id="build-form-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= build?'编辑楼号':'新楼号' %></h4>
+    </div>
+    <div class="body">
+      <form id="build-form" method="post" action="<?php echo $this->baseUrl()?>/build/save">
+        <div class="control-group">
+          <label class="control-label">园区</label>
+          <div class="controls">
+            <select id="park" name="park" class="span12" data-placeholder="选择一个园区" tabindex="1">
+              <option value="">请选择...</option>
+              <% _.each(parks, function(park) { %>
+              <option value="<%= park.get('id') %>" <%= build?(build.get('park').id == park.get('id') ? 'selected' : ''):'' %> ><%= park.get('name') %></option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">管理员</label>
+          <div class="controls">
+            <select id="user" name="user" class="span12" data-placeholder="选择一个管理员" tabindex="1">
+              <option value="">请选择...</option>
+              <% _.each(users, function(user) { %>
+              <option value="<%= user.get('id') %>" <%= build?(build.get('user').id == user.get('id') ? 'selected' : ''):'' %> ><%= user.get('username') %></option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">楼号名称</label>
+          <div class="controls">
+            <input type="text" id="name" name="name" placeholder="新楼号" class="span12" value="<%= build?build.get('name'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a href="#depart/build/list" class="btn"><i class="icon-chevron-left"></i> 取消</a>
+          <button id="submit-button" type="submit" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+
+          <% if(build) { %>
+            <input type="hidden" name="id" value="<%= build.get('id') %>" />
+            <button data-build-id="<%= build.get('id') %>" class="btn btn-danger delete">删除</button>
+          <% }; %>
+        </div>
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="user-list-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <a href="#user/add" class="btn">添加新用户</a>
+    </div>
+    <div class="body">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>用户名</th>
+            <th>权限</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% _.each(users, function(user) { %>
+          <tr>
+            <td><%= user.get('id') %></td>
+            <td><%= user.get('username') %></td>
+            <td>
+              <% _.each(user.get('roles'), function(role) { %>
+                <span class="label label-info"><%= role.name %></span>
+              <% });%>
+            </td>
+            <td><a href="#user/edit/<%= user.get('id') %>" class="btn">编辑</a></td>
+          </tr>
+        <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="user-form-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= user?'编辑用户':'新用户' %></h4>
+    </div>
+    <div class="body">
+      <form id="user-form" method="post" action="<?php echo $this->baseUrl()?>/user/save">
+        <div class="control-group">
+          <label class="control-label">权限选择</label>
+          <div class="controls">
+            <select name="roles" data-placeholder="权限选择" class="chzn-select span12" multiple="multiple" tabindex="6">
+              <% _.each(roles, function(role){%>
+                <option value="<%= role.get('id') %>"
+                  <% if(user){_.each(user.get('roles'), function(userrole){ %>
+                    <%= (userrole.id==role.id)?'selected':'' %>
+                  <% });} %>
+                >
+                  <%= role.get('name') %>
+                </option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">用户名</label>
+          <div class="controls">
+            <input type="text" id="username" name="username" placeholder="用户名" class="span12" value="<%= user?user.get('username'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Email</label>
+          <div class="controls">
+            <input type="text" id="email" name="email" placeholder="Email" class="span12" value="<%= user?user.get('email'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">昵称</label>
+          <div class="controls">
+            <input type="text" id="display_name" name="display_name" placeholder="昵称" class="span12" value="<%= user?user.get('display_name'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="#user/list" class="btn"><i class="icon-chevron-left"></i> 取消</a>
+          <button id="submit-button" type="submit" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+
+          <% if(user) { %>
+            <input type="hidden" name="id" value="<%= user.get('id') %>" />
+            <button data-user-id="<%= user.get('id') %>" class="btn btn-danger delete">删除</button>
+          <% }; %>
+        </div>
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+
+
+
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/modules/super.js') ?>
+
+
+<?php } ?>
+
+<?php if ($role['name'] == 'depart') { ?>
+
+<script type="text/template" id="student-list-template">
+<div class="span6">
+  <section class="feeds social-box">
+    <div class="header">
+      <h4>
+        <i class="icon-th-list"></i>
+        <a href="#student/add" class="btn">添加新学生</a>
+      </h4>
+    </div>
+    <div class="body">
+      <div class="row-fluid users-feeds">
+        <% _.each(students, function(student) { %>
+          <div class="feed span6">
+            <img class="feed-object" src="/img/avatars/user2-55x55.png" alt="<%= student.get('real_name') %>">
+            <div class="feed-body">
+              <h6 class="feed-heading"><%= student.get('real_name') %></h6>
+              <span>
+                <small><%= student.get('room').name %>寝室</small>
+              </span>
+              <a href="#student/edit/<%= student.get('id') %>" class="btn btn-small btn-primary">编辑</a>
+            </div>
+          </div>
+        <% }); %>
+        
+      </div>
+    </div>
+  </section>
+</div>
+</script>
+
+<script type="text/template" id="student-form-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= student?'编辑学生':'新学生' %></h4>
+    </div>
+    <div class="body">
+      <form id="student-form" method="post" action="<?php echo $this->baseUrl()?>/student/save">
+
+        <div class="control-group">
+          <label class="control-label">楼号</label>
+          <div class="controls">
+            <select id="build" name="build" class="span6" data-placeholder="选择一个楼号" tabindex="1">
+              <option value="">请选择...</option>
+              <% _.each(builds, function(build) { %>
+              <option value="<%= build.get('id') %>" <%= student&&student.get('build')?(student.get('build').id == build.get('id') ? 'selected' : ''):'' %> ><%= build.get('park').name %>-<%= build.get('name') %></option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">寝室号</label>
+          <div class="controls">
+            <input type="text" id="room" name="room" placeholder="寝室号" class="span6" value="<%= student?student.get('room').name:''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">床号</label>
+          <div class="controls">
+            <input type="text" id="bed" name="bed" placeholder="床号" class="span6" value="<%= student?student.get('bed_num'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">学号</label>
+          <div class="controls">
+            <input type="text" id="student_num" name="student_num" placeholder="学号" class="span6" value="<%= student?student.get('student_num'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">姓名</label>
+          <div class="controls">
+            <input type="text" id="real_name" name="real_name" placeholder="姓名" class="span6" value="<%= student?student.get('real_name'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">性别</label>
+          <div class="controls">
+            <select id="gender" name="gender">
+              <option value="">请选择...</option>
+              <option value="1" <%= student?((student.get('gender') == 1)?'selected':''):'' %>>男</option>
+              <option value="0" <%= student?((student.get('gender') == 0)?'selected':''):'' %>>女</option>
+            </select>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">学校</label>
+          <div class="controls">
+            <input type="text" id="college" name="college" placeholder="学校" class="span6" value="<%= student?student.get('college'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">专业</label>
+          <div class="controls">
+            <input type="text" id="specialty" name="specialty" placeholder="专业" class="span6" value="<%= student?student.get('specialty'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">年级</label>
+          <div class="controls">
+            <input type="text" id="grade" name="grade" placeholder="年级" class="span6" value="<%= student?student.get('grade'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">班级</label>
+          <div class="controls">
+            <input type="text" id="class" name="class" placeholder="班级" class="span6" value="<%= student?student.get('class'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">手机号</label>
+          <div class="controls">
+            <input type="text" id="phone" name="phone" placeholder="手机号" class="span6" value="<%= student?student.get('phone'):''%>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+         <div class="control-group">
+
+            <label class="control-label">入住时间</label>
+            <div class="controls">
+              <div id="checkin" class="input-append date">
+                <input id="checkin" name="checkin" data-format="yyyy-MM-dd" type="text" class="input-block-level" value="<%= student?student.get('checkin').date.substr(0,10):''%>">
+                <span class="add-on">
+                  <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        <div class="form-actions">
+          <a href="#student/list" class="btn"><i class="icon-chevron-left"></i> 取消</a>
+          <button id="submit-button" type="submit" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+          <% if(student) { %>
+            <input type="hidden" name="id" value="<%= student.get('id') %>" />
+            <button data-build-id="<%= student.get('id') %>" class="btn btn-danger delete">删除</button>
+          <% }; %>
+        </div>
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+<script type="text/template" id="electric-list-template">
+<div class="span12">
+  <div class="social-box">
+    <div class="header">
+      <a href="#electric/add" class="btn">添加新电费</a>
+    </div>
+    <div class="body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>寝室号</th>
+            <th>应缴费用</th>
+            <th>实缴度数</th>
+            <th>上期度数</th>
+            <th>抄表度数</th>
+            <th>单价</th>
+            <th>缴费截止日期</th>
+            <th>抄表时间</th>
+            <th>缴费情况</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% _.each(electrics, function(electric, index) { %>
+            <tr class="<%= (0==(index%2))?'success':'info'%>">
+              <td><%= electric.get('id') %></td>
+              <td><%= electric.get('build').name %>-<%= electric.get('room').name %></td>
+              <td>￥<%= Math.floor(electric.get('price_per')*electric.get('degree_pay')*100)/100%></td>
+              <td><%= electric.get('degree_pay') %></td>
+              <td><%= electric.get('degree_last') %></td>
+              <td><%= electric.get('degree_current') %></td>
+              <td>￥<%= electric.get('price_per') %></td>
+              <td><%= electric.get('dead_line').date.substr(0,10) %></td>
+              <td><%= moment(electric.get('create_at')*1000).format('YYYY-MM-DD') %></td>
+              <td>
+                <% if(electric.get('status') == 1) { %>
+                  <span class="label label-success">已缴</span>
+                <% } else if(electric.get('status') == 0) { %>
+                  <span class="label label-important">未缴</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="#electric/edit/<%= electric.get('id') %>" class="btn">编辑</a>
+                <% if (electric.get('status') == 0) { %>
+                <a href="#" class="btn btn-primary">催缴</a>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+<script type="text/template" id="electric-form-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= electric?'编辑电费':'新电费' %></h4>
+    </div>
+    <div class="body">
+      <form id="electric-form" method="post" action="<?php echo $this->baseUrl()?>/electric/save">
+
+        <div class="control-group">
+          <label class="control-label">寝室号</label>
+          <div class="controls">
+            <input type="text" id="room" name="room" placeholder="寝室号" class="span6" value="<%= electric? electric.get('room').name: '' %>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">实缴度数</label>
+          <div class="controls">
+            <input type="text" id="degree_pay" name="degree_pay" placeholder="实缴度数" class="span6" value="<%= electric? electric.get('degree_pay'): '' %>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">上期度数</label>
+          <div class="controls">
+            <input type="text" id="degree_last" name="degree_last" placeholder="上期度数" class="span6" value="<%= electric? electric.get('degree_last'): '' %>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">抄表度数</label>
+          <div class="controls">
+            <input type="text" id="degree_current" name="degree_current" placeholder="抄表度数" class="span6" value="<%= electric?electric.get('degree_current'):'' %>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">单价</label>
+          <div class="controls">
+            <input type="text" id="price_per" name="price_per" placeholder="单价" class="span6" value="<%= electric? electric.get('price_per'): '' %>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">缴费截止日期</label>
+          <div class="controls">
+            <div id="dead_line" class="input-append date">
+              <input id="dead_line" name="dead_line" data-format="yyyy-MM-dd" type="text" class="input-block-level" value="<%= electric?electric.get('dead_line').date.substr(0, 10):'' %>">
+              <span class="add-on">
+                <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">抄表时间</label>
+          <div class="controls">
+            <div id="create_at" class="input-append date">
+              <input id="create_at" name="create_at" data-format="yyyy-MM-dd" type="text" class="input-block-level" value="<%= electric? moment(electric.get('create_at')*1000).format('YYYY-MM-DD'): ''%>">
+              <span class="add-on">
+                <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="form-actions">
+          <a href="#electric/list" class="btn"><i class="icon-chevron-left"></i> 取消</a>
+          <button id="submit-button" type="submit" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+          <% if (electric) { %>
+            <input type="hidden" name="id" value="<%= electric.get('id') %>" />
+          <% } %>
+        </div>
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="health-list-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <a href="#health/add" class="btn">添加新评分</a>
+    </div>
+    <div class="body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>寝室号</th>
+            <th>等级</th>
+            <th>检查时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% _.each(healths, function(health) { %>
+            <% if(health.get('level') == 1) { %>
+            <tr class="success">
+            <% } else if(health.get('level') == 2) { %>
+            <tr class="info">
+            <% } else { %>
+            <tr class="warning"> 
+            <% } %>
+              <td><%= health.get('id') %></td>
+              <td><%= health.get('room').name %></td>
+              <td>
+                <% if(health.get('level') == 1) { %>
+                <img src="/img/avatars/a-26x26.png" alt="a">
+                <% } else if(health.get('level') == 2) { %>
+                <img src="/img/avatars/b-26x26.png" alt="b">
+                <% } else if(health.get('level') == 3) { %>
+                <img src="/img/avatars/c-26x26.png" alt="c"> 
+                <% } else { %>
+                <img src="/img/avatars/d-26x26.png" alt="d">
+                <% } %>
+                
+              </td>
+              <td><%= health.get('checkdate').date.substr(0,10) %></td>
+              <td>
+                <a href="#health/edit/<%= health.get('id') %>" class="btn">编辑</a>
+              </td>
+            </tr>
+          <% }); %>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="health-form-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= health?'编辑评分': '新评分'%></h4>
+    </div>
+    <div class="body">
+      <form id="health-form" method="post" action="<?php echo $this->baseUrl()?>/health/save">
+
+        <div class="control-group">
+          <label class="control-label">寝室号</label>
+          <div class="controls">
+            <input type="text" id="room" name="room" placeholder="寝室号" class="span6" value="<%= health? health.get('room').name: '' %>"/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">评分</label>
+          <div class="controls">
+            <select id="level" name="level" class="span6" data-placeholder="选择一个等级" tabindex="1">              
+              <option value="1" <%= health?((health.get('level') == 1)?'selected':''):''%>>A</option>
+              <option value="2" <%= health?((health.get('level') == 2)?'selected':''):''%>>B</option>
+              <option value="3" <%= health?((health.get('level') == 3)?'selected':''):''%>>C</option>
+            </select>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">检查时间</label>
+          <div class="controls">
+            <div id="create_at" class="input-append date">
+              <input id="checkdate" name="checkdate" data-format="yyyy-MM-dd" type="text" class="input-block-level" value="<%= health ? health.get('checkdate').date.substr(0, 10):'' %>">
+              <span class="add-on">
+                <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="form-actions">
+          <a href="#health/list" class="btn"><i class="icon-chevron-left"></i> 取消</a>
+          <button id="submit-button" type="submit" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+          <% if (health) { %>
+            <input type="hidden" name="id" value="<%= health.get('id') %>" />
+          <% } %>
+        </div>
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+
+
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/modules/depart.js') ?>
+
+<?php } ?>
+
+<?php if ($role['name'] == 'student') { ?>
+<script type="text/template" id="student-info-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4>个人信息</h4>
+    </div>
+    <div class="body">
+      <form id="student-form" method="post" action="<?php echo $this->baseUrl()?>/student/save">
+
+        <div class="control-group">
+          <label class="control-label">寝室</label>
+          <div class="controls">
+            <input type="text" id="room" name="room" placeholder="寝室号" class="span6" value="<%= student?student.get('room').name:''%>" disabled/>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">床号</label>
+          <div class="controls">
+            <input type="text" id="bed" name="bed" placeholder="床号" class="span6" value="<%= student?student.get('bed_num'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">学号</label>
+          <div class="controls">
+            <input type="text" id="student_num" name="student_num" placeholder="学号" class="span6" value="<%= student?student.get('student_num'):''%>" disabled />
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">姓名</label>
+          <div class="controls">
+            <input type="text" id="real_name" name="real_name" placeholder="姓名" class="span6" value="<%= student?student.get('real_name'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">性别</label>
+          <div class="controls">
+            <input type="text" id="real_name" name="real_name" placeholder="姓名" class="span6" value="<%= student?((student.get('gender') == 1)?'男':'女'):'' %>" disabled/>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">学校</label>
+          <div class="controls">
+            <input type="text" id="college" name="college" placeholder="学校" class="span6" value="<%= student?student.get('college'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">专业</label>
+          <div class="controls">
+            <input type="text" id="specialty" name="specialty" placeholder="专业" class="span6" value="<%= student?student.get('specialty'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">年级</label>
+          <div class="controls">
+            <input type="text" id="grade" name="grade" placeholder="年级" class="span6" value="<%= student?student.get('grade'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">班级</label>
+          <div class="controls">
+            <input type="text" id="class" name="class" placeholder="班级" class="span6" value="<%= student?student.get('class'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">手机号</label>
+          <div class="controls">
+            <input type="text" id="phone" name="phone" placeholder="手机号" class="span6" value="<%= student?student.get('phone'):''%>" disabled/>
+            <span class="help-inline" style="display:none;"></span>
+          </div>
+        </div>
+
+         <div class="control-group">
+
+            <label class="control-label">入住时间</label>
+            <div class="controls">
+              <input type="text" id="phone" name="phone" placeholder="手机号" class="span6" value="<%= student?student.get('checkin').date.substr(0,10):''%>" disabled/>
+            </div>
+          </div>
+
+        
+      </from>
+    </div>
+  </div>
+</div>
+</script>
+<script type="text/template" id="student-electric-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4>电费情况</h4>
+      <div class="tools">
+        <% if (electric) {%>
+        <span class="label label-important">未缴</span>
+        <% }else { %>
+        <span class="label label-success">已缴</span>
+        <% } %>
+        <a href="" id="pay-electric" data-electric-id="<%= electric? electric.get('id'): '' %>" class="btn" <%= electric? '': 'disabled' %>>缴费</a>
+      </div>
+    </div>
+    <div class="body">
+      <table class="table">
+        <tbody>
+          <tr>
+            <th>寝室号</th>
+            <td><%= electric? electric.get('room').name: '' %></td>
+          </tr>
+          <tr>
+            <th>应缴费用</th>
+            <td><% if(electric){ %>￥<%= Math.floor(electric.get('price_per')*electric.get('degree_pay')*100)/100%><%}%></td>
+          </tr>
+          <tr>
+            <th>实缴度数</th>
+            <td><%= electric? electric.get('degree_pay'): '' %></td>
+          </tr>
+          <tr>
+            <th>上期度数</th>
+            <td><%= electric? electric.get('degree_last'): '' %></td>
+          </tr>
+          <tr>
+            <th>抄表度数</th>
+            <td><%= electric? electric.get('degree_current'): '' %></td>
+          </tr>
+          <tr>
+            <th>单价</th>
+            <td><%= electric? electric.get('price_per'): '' %></td>
+          </tr>
+          <tr>
+            <th>缴费截止日期</th>
+            <td><%= electric?electric.get('dead_line').date.substr(0, 10):'' %></td>
+          </tr>
+          <tr>
+            <th>抄表时间</th>
+            <td><%= electric? moment(electric.get('create_at')*1000).format('YYYY-MM-DD'): ''%></td>
+          </tr>
+        <tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+<script type="text/template" id="student-health-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4><%= student?student.get('room').name:''%>寝室评分情况</h4>
+    </div>
+    <div class="body">
+      <table class="table">
+        <thead>
+          <th>检查时间</th>
+          <th>等级</th>
+        </thead>
+        <tbody>
+          <% _.each(healths, function(health) { %>
+            <% if(health.get('level') == 1) { %>
+            <tr class="success">
+            <% } else if(health.get('level') == 2) { %>
+            <tr class="info">
+            <% } else { %>
+            <tr class="warning"> 
+            <% } %>
+              <td><%= health.get('checkdate').date.substr(0,10) %></td>
+              <td>
+                <% if(health.get('level') == 1) { %>
+                <img src="/img/avatars/a-26x26.png" alt="a">
+                <% } else if(health.get('level') == 2) { %>
+                <img src="/img/avatars/b-26x26.png" alt="b">
+                <% } else if(health.get('level') == 3) { %>
+                <img src="/img/avatars/c-26x26.png" alt="c"> 
+                <% } else { %>
+                <img src="/img/avatars/d-26x26.png" alt="d">
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        <tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="student-repair-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4>报修</h4>
+    </div>
+    <div class="body">
+      <form id="repair-form" >
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label">问题描述</label>
+            <div class="controls">
+              <div class="textarea">
+                <textarea id="problem" name="problem" rows="3" class="input-block-level"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">预约时间上门维修</label>
+            <div class="controls">
+              <div id="time_rest" class="input-append date">
+                <input id="time_rest" name="time_rest" data-format="yyyy-MM-dd hh:mm:ss" type="text" class="input-block-level">
+                <span class="add-on">
+                  <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+        </fieldset>
+        <div class="form-actions">
+          <button id="submit-button" type="submit" class="btn btn-primary">报修</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</script>
+
+
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/modules/student.js') ?>
+<?php } ?>
+
+<?php if ($role['name'] == 'engine') { ?>
+
+<script type="text/template" id="repair-list-template">
+<div class="span10">
+  <div class="social-box">
+    <div class="header">
+      <h4>报修情况</h4>
+    </div>
+    <div class="body">
+      <table class="table">
+        <thead>
+          <th>#</th>
+          <th>寝室</th>
+          <th>报修学生</th>
+          <th>电话</th>
+          <th>预约时间</th>
+          <th>问题描述</th>
+          <th>状态</th>
+          <th>操作</th>
+        </thead>
+        <tbody>
+          <% _.each(repairs, function(repair) { %>
+            <% if(repair.get('status') == 0) { %>
+              <tr class="warning">
+            <% } else if(repair.get('status') == 1) { %>
+              <tr class="info">
+            <% } else { %>
+              <tr class="success">
+            <% } %>
+                <td><%= repair.get('id') %></td>
+                <td><%= repair.get('build').name %>-<%= repair.get('room').name%></td>
+                <td><%= repair.get('student').real_name %></td>
+                <td><%= repair.get('student').phone%></td>
+                <td><%= moment(repair.get('rest_time')).format('YYYY-MM-DD hh:mm:ss')%></td>
+                <td>
+                  <p><%= repair.get('problem') %></p>
+                </td>
+                <td>
+                  <% if(repair.get('status') == 0) { %>
+                    <span class="label label-important">新单</span>
+                  <% } else if(repair.get('status') == 1) { %>
+                    <span class="label label-info">已接单</span>
+                  <% } else { %>
+                    <span class="label label-success">已归档</span>
+                  <% } %>
+                </td>
+                <td>
+                  <a href="#repair/feedback/<%= repair.get('id') %>" class="btn">接单反馈</a>
+                </td>
+              </tr>
+          <% }); %>
+        <tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="repair-feedback-template">
+<div class="span6">
+  <div class="social-box">
+    <div class="header">
+      <h4>报修反馈</h4>
+    </div>
+    <div class="body">
+      <form id="feedback-form" class="">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label">反馈信息</label>
+            <div class="controls">
+              <div class="textarea">
+                <textarea id="feedback" name="feedback" rows="3" class="input-block-level" <%= (repair.get('status')!=0)?'disabled':''%>><%= repair.get('feedback') %></textarea>
+              </div>
+            </div>
+          </div>
+          
+        </fieldset>
+        <div class="form-actions">
+          <input type="hidden" id="id" name="id" value="<%= repair.get('id') %>" />
+          <% if(repair.get('status') == 0) {%>
+          <input type="hidden" name="status" value="1" />
+          <% } else if (repair.get('status') == 1){ %>
+          <input type="hidden" name="status" value="2" />
+          <% } else { %>
+          <input type="hidden" name="status" value="<%= repair.get('status')%>" />
+          <% } %>
+          <button id="submit-button" type="submit" class="btn btn-primary"  <%= (repair.get('status')!=0)?'disabled':''%>>反馈</button>
+
+          <button id="file-repair" type="submit" class="btn" <%= repair.get('status')==2?'disabled':''%>>归档</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</script>
+
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/modules/engine.js') ?>
+<?php } ?>
+
+
+<script type="text/template" id="error-template">
+</script>
+
+<?php } ?>
+
+
+<?php $this->inlineScript()->appendFile($this->basePath() . '/js/modules/history.js') ?>
+
+
+
+
+
